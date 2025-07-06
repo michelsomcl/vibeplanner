@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const { id: clientId } = useParams();
 
   const mainItems = [
@@ -46,12 +46,14 @@ export function AppSidebar() {
       ? "bg-primary text-white font-medium" 
       : "hover:bg-primary/10 text-gray-700 hover:text-primary";
 
+  const isCollapsed = state === "collapsed";
+
   return (
-    <Sidebar className={collapsed ? "w-16" : "w-64"} collapsible>
+    <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon">
       <SidebarContent className="bg-white border-r border-gray-200">
         <SidebarGroup>
           <SidebarGroupLabel className="text-primary font-semibold">
-            {!collapsed && "Menu Principal"}
+            {!isCollapsed && "Menu Principal"}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
@@ -64,7 +66,7 @@ export function AppSidebar() {
                       className={({ isActive }) => getNavClass(isActive)}
                     >
                       <item.icon className="h-5 w-5" />
-                      {!collapsed && <span>{item.title}</span>}
+                      {!isCollapsed && <span>{item.title}</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -76,7 +78,7 @@ export function AppSidebar() {
         {clientItems.length > 0 && (
           <SidebarGroup>
             <SidebarGroupLabel className="text-primary font-semibold">
-              {!collapsed && "Planejamento"}
+              {!isCollapsed && "Planejamento"}
             </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
@@ -89,7 +91,7 @@ export function AppSidebar() {
                         className={({ isActive }) => getNavClass(isActive)}
                       >
                         <item.icon className="h-5 w-5" />
-                        {!collapsed && <span className="text-sm">{item.title}</span>}
+                        {!isCollapsed && <span className="text-sm">{item.title}</span>}
                       </NavLink>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
