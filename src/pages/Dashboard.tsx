@@ -1,160 +1,119 @@
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, Users, Phone } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, User, Phone, Briefcase, FileText } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Client {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  profession: string;
-  monthlyIncome: number;
-  hasPlanning: boolean;
-}
-
-const Dashboard = () => {
-  const [clients, setClients] = useState<Client[]>([]);
-
-  useEffect(() => {
-    const savedClients = localStorage.getItem('vibeplanner_clients');
-    if (savedClients) {
-      setClients(JSON.parse(savedClients));
+export default function Dashboard() {
+  const { data: clients, isLoading } = useQuery({
+    queryKey: ['clients'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('clients')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
     }
-  }, []);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold text-primary mb-4">VibePlanner</h1>
-          <p className="text-xl text-gray-600 mb-8">
+    <div className="min-h-screen bg-gray-50">
+      {/* Hero Section */}
+      <div className="bg-gradient-to-r from-primary to-purple-600 text-white py-16">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <h1 className="text-5xl font-bold mb-4">VibePlanner</h1>
+          <p className="text-xl opacity-90 mb-8">
             Sistema Profissional de Planejamento Financeiro
           </p>
-          
           <Link to="/client/new">
-            <Button size="lg" className="bg-primary hover:bg-primary/90 text-white px-8 py-3 text-lg">
+            <Button size="lg" className="bg-white text-primary hover:bg-gray-100">
               <Plus className="mr-2 h-5 w-5" />
               Novo Cliente
             </Button>
           </Link>
         </div>
+      </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Total de Clientes</p>
-                  <p className="text-3xl font-bold text-primary">{clients.length}</p>
-                </div>
-                <User className="h-8 w-8 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Com Planejamento</p>
-                  <p className="text-3xl font-bold text-green-600">
-                    {clients.filter(c => c.hasPlanning).length}
-                  </p>
-                </div>
-                <FileText className="h-8 w-8 text-green-600" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white shadow-md hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                  <p className="text-3xl font-bold text-orange-600">
-                    {clients.filter(c => !c.hasPlanning).length}
-                  </p>
-                </div>
-                <Briefcase className="h-8 w-8 text-orange-600" />
-              </div>
-            </CardContent>
-          </Card>
+      {/* Clients Section */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-3">
+            <Users className="h-8 w-8 text-primary" />
+            <h2 className="text-3xl font-bold text-gray-900">Seus Clientes</h2>
+          </div>
+          <div className="text-sm text-gray-600">
+            {clients?.length || 0} cliente{clients?.length !== 1 ? 's' : ''} cadastrado{clients?.length !== 1 ? 's' : ''}
+          </div>
         </div>
 
-        {/* Clients List */}
-        <Card className="bg-white shadow-md">
-          <CardHeader>
-            <CardTitle className="text-2xl text-primary">Clientes Cadastrados</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {clients.length === 0 ? (
-              <div className="text-center py-12">
-                <User className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg mb-4">Nenhum cliente cadastrado ainda</p>
-                <Link to="/client/new">
-                  <Button className="bg-primary hover:bg-primary/90">
-                    <Plus className="mr-2 h-4 w-4" />
-                    Cadastrar Primeiro Cliente
-                  </Button>
-                </Link>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {clients.map((client) => (
-                  <Card key={client.id} className="border border-gray-200 hover:border-primary/50 hover:shadow-md transition-all">
-                    <CardContent className="p-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between">
-                          <h3 className="font-semibold text-lg text-gray-900">{client.name}</h3>
-                          <Badge variant={client.hasPlanning ? "default" : "secondary"} className={client.hasPlanning ? "bg-green-100 text-green-800" : "bg-orange-100 text-orange-800"}>
-                            {client.hasPlanning ? "Com Plano" : "Sem plano definido"}
-                          </Badge>
-                        </div>
-                        
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center text-gray-600">
-                            <Phone className="h-4 w-4 mr-2" />
-                            {client.phone}
-                          </div>
-                          <div className="flex items-center text-gray-600">
-                            <Briefcase className="h-4 w-4 mr-2" />
-                            {client.profession}
-                          </div>
-                          <div className="text-primary font-medium">
-                            Renda: {formatCurrency(client.monthlyIncome)}
-                          </div>
-                        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-full"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : clients?.length === 0 ? (
+          <div className="text-center py-12">
+            <Users className="mx-auto h-16 w-16 text-gray-400 mb-4" />
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Nenhum cliente cadastrado
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Comece criando seu primeiro cliente para iniciar o planejamento financeiro.
+            </p>
+            <Link to="/client/new">
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="mr-2 h-4 w-4" />
+                Criar Primeiro Cliente
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {clients?.map((client) => (
+              <Card key={client.id} className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
+                <CardHeader>
+                  <CardTitle className="text-lg text-gray-900">{client.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center text-gray-600">
+                    <Phone className="h-4 w-4 mr-2" />
+                    <span className="text-sm">{client.phone}</span>
+                  </div>
+                  
+                  <div className="text-sm text-gray-600">
+                    Status: {client.has_planning ? (
+                      <span className="text-green-600 font-medium">Com planejamento</span>
+                    ) : (
+                      <span className="text-orange-600 font-medium">Sem plano definido</span>
+                    )}
+                  </div>
 
-                        <Link to={`/client/${client.id}`}>
-                          <Button className="w-full bg-primary hover:bg-primary/90 mt-4">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Acessar Planejamento
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  <Link to={`/client/${client.id}`}>
+                    <Button className="w-full bg-primary hover:bg-primary/90">
+                      📂 Acessar Planejamento
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
-};
-
-export default Dashboard;
+}
